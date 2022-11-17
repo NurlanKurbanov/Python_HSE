@@ -3,37 +3,28 @@ import json
 
 
 class ConvImp:
-    def __init__(self, inp, output):
-        self.inp = inp
-        self.output = output
+    def __init__(self, csv_data, line_with_title=0, delimiter=','):
+        self.title = csv_data[line_with_title]
+        self.values = csv_data[0:line_with_title] + csv_data[line_with_title + 1:]
+        self.delimiter = delimiter
 
-    def read_data_to_list(self):
-        file = open(self.inp)
-        content = file.readlines()
-        file.close()
-        return content
+    def prepare_title(self):
+        title = self.title.strip().split(self.delimiter)
+        return title
 
-    def write_data(self, data):
-        file = open(self.output, 'w')
-        # jsonString = json.dumps(data, indent=4)
-        file.write(data)
-        file.close()
+    def to_json(self):
+        title = self.prepare_title()
 
-    def split_data(self, data):
-        line_with_title = 0
-        title = data.pop(line_with_title).strip().split(';')
-        return title, data
+        self.check_data(title)
 
-    def csv_to_json(self, data):
-        title, content = self.split_data(data)
-        csvReader = csv.DictReader(content, fieldnames=title, delimiter=';')
-        res = []
-        for row in csvReader:
-            res.append(row)
+        csvReader = csv.DictReader(self.values, fieldnames=title, delimiter=self.delimiter)
+        res = [row for row in csvReader]
         jsonString = json.dumps(res, indent=4)
         return jsonString
 
-    def convert(self):
-        content = self.read_data_to_list()
-        res = self.csv_to_json(content)
-        self.write_data(res)
+    def check_data(self, title):
+        values = [row.strip().split(self.delimiter) for row in self.values]
+
+        len_title = len(title)
+        for row in values:
+            assert len_title == len(row), "Column count is not equals value count"

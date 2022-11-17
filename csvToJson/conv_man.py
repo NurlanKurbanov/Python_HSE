@@ -1,45 +1,33 @@
 class ConvMan:
-    def __init__(self, inp, output):
-        self.inp = inp
-        self.output = output
+    def __init__(self, csv_data, line_with_title=0, delimiter=','):
+        self.title = csv_data[line_with_title]
+        self.values = csv_data[0:line_with_title] + csv_data[line_with_title + 1:]
+        self.delimiter = delimiter
 
-    def read_data_to_list(self):
-        file = open(self.inp)
-        content = file.readlines()
-        file.close()
-        return content
+    def prepare_title(self):
+        title = self.title.strip().split(self.delimiter)
+        return title
 
-    def write_data(self, data):
-        file = open(self.output, 'w')
-        file.write(data)
-        file.close()
+    def prepare_row_values(self):
+        values = [row.strip().split(self.delimiter) for row in self.values]  #2d-массив, строки - элементы строк
+        return values
 
-    def split_data(self, data):
-        line_with_title = 0
-        title = data.pop(line_with_title).strip().split(';')
-        return title, data
+    def make_json_block(self, data):
+        json_pairs = ",".join([f'"{key}": "{value}"' for key, value in data.items()])
+        return f"{{ {json_pairs} }}"
 
-    def convert_row_to_pretty_json(self, keys, row):
-        values = row.strip().split(';')
-        s = ['    {']
-        for elem in dict(zip(keys, values)).items():
-            s.append(f'        "{elem[0]}": "{elem[1]}",')
-        s[-1] = s[-1][:-1]
-        s.append("    }")
-        return '\n'.join(s)
+    def to_json(self):
+        title = self.prepare_title()
+        row_values = self.prepare_row_values()
 
-    def join_blocks(self, blocks):
-        return '\n'.join(['[', ', \n'.join(blocks), ']'])
+        self.check_data(title, row_values)
 
-    def csv_to_json(self, data):
-        title, content = self.split_data(data)
-        if len(data) == 0:
-            return "[]"
-        blocks = [self.convert_row_to_pretty_json(title, row) for row in data]
-        res = self.join_blocks(blocks)
-        return res
+        result = [self.make_json_block(dict(zip(title, row))) for row in row_values]  #json blocks
+        return "[{}]".format(",".join(result))
 
-    def convert(self):
-        content = self.read_data_to_list()
-        res = self.csv_to_json(content)
-        self.write_data(res)
+    def check_data(self, title, row_values):
+        len_title = len(title)
+        for row in row_values:
+            assert len_title == len(row), "Column count is not equals value count"
+
+
