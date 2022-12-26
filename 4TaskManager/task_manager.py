@@ -101,22 +101,22 @@ class TaskManager:
             for subtask_id in compl_task.get_subtasks():
                 subtask = self.get_subtasks_by_id(subtask_id)
                 subtask.update_status(st)
-        else:
+        elif id in self.__subtasks:
             subtask = self.get_subtasks_by_id(id)
             subtask.update_status(st)
 
-            if st == Status.DONE:
+            if st == Status.DONE.value:
                 par_task = self.get_complex_tasks_by_id(subtask.get_par())
-                all_done = True
+                all_subtasks_done = True
                 for subtask_id in par_task.get_subtasks():
                     par_subtask = self.get_subtasks_by_id(subtask_id)
-                    if par_subtask.get_status() != Status.DONE:
-                        all_done = False
+                    if par_subtask.get_status() != Status.DONE.value:
+                        all_subtasks_done = False
                         break
-                if all_done:
+                if all_subtasks_done:
                     par_task.update_status(st)
 
-    def status(self):
+    def manager_status(self):
         print("tasks: ", end='')
         print(*self.__tasks)
         print("subtasks: ", end='')

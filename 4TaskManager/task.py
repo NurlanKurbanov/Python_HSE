@@ -5,9 +5,13 @@ class Status(Enum):
     IN_PROGRESS = 'in progress'
     DONE = 'done'
 
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
+
 
 class Task:
-    def __init__(self, id, name, description, status=Status.IN_PROGRESS):
+    def __init__(self, id, name, description, status=Status.IN_PROGRESS.value):
         self.__id = id
         self.__name = name
         self.__description = description
@@ -26,12 +30,12 @@ class Task:
         return self.__status
 
     def update_status(self, st):
-        if st in ['done', 'in progress']:
+        if Status.has_value(st):
             self.__status = st
 
 
 class Subtask(Task):
-    def __init__(self, id, name, description, parent_id, status=Status.IN_PROGRESS):
+    def __init__(self, id, name, description, parent_id, status=Status.IN_PROGRESS.value):
         super().__init__(id, name, description, status)
         self.__parent_id = parent_id
 
@@ -40,7 +44,7 @@ class Subtask(Task):
 
 
 class ComplexTask(Task):
-    def __init__(self, id, name, description, subtasks, status=Status.IN_PROGRESS):
+    def __init__(self, id, name, description, subtasks, status=Status.IN_PROGRESS.value):
         super().__init__(id, name, description, status)
         self.__subtasks = subtasks
 
