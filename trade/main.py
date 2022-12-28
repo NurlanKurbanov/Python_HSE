@@ -24,23 +24,23 @@ class StrategyDeal:
         target_banks = self.get_target_banks()
 
         s = f"""
-            BANK: {self.bank}
-            START_PRICE = {self.entry}
-            STOP_PRICE = {self.close}
+BANK: {self.bank}
+START_PRICE = {self.entry}
+STOP_PRICE = {self.close}
         
             """
 
         for i in range(len(targets)):
             s +=f"""
-                {i + 1} target: {targets[i]}
-                Percent: {percents[i]}%
-                Bank: {target_banks[i]}
+{i + 1} target: {targets[i]}
+Percent: {percents[i]}%
+Bank: {target_banks[i]}
                 
-                """
+            """
 
         s += """
             
-            ----
+----
             
             """
 
@@ -59,40 +59,44 @@ def write_data(file_name, data):
     file.close()
 
 
+def extract_attributes(txt):
+    for line in txt.split('\n'):
+        if line.startswith('Bank'):
+            bank = line.split()[-1]
+            bank = bank[:-3]
+            bank = round(float(bank), 3)
+        elif line.startswith('Entry'):
+            entry = line.split()[-1]
+            entry = entry[:-3]
+            entry = round(float(entry), 3)
+        elif line.startswith('Close'):
+            close = line.split()[-1]
+            close = close[:-3]
+            close = round(float(close), 3)
+        elif line.startswith('Target'):
+            targets_float = []
+            for target in line.split()[1:]:
+                if target[-1] == ';':
+                    targets_float.append(round(float(target[:-4]), 3))
+                else:
+                    targets_float.append(round(float(target[:-3]), 3))
+
+    return ((bank, entry, close, targets_float))
+
+
 def parse_data(data):
     blocks = [block.strip() for block in data.split('-----') if len(block.strip()) > 0]
 
-    arr = []
+    arr_with_attributes = []
     for block in blocks:
-        for line in block.split('\n'):
-            if line.startswith('Bank'):
-                bank = line.split()[-1]
-                bank = bank[:-3]
-                bank = round(float(bank), 3)
-            elif line.startswith('Entry'):
-                entry = line.split()[-1]
-                entry = entry[:-3]
-                entry = round(float(entry), 3)
-            elif line.startswith('Close'):
-                close = line.split()[-1]
-                close = close[:-3]
-                close = round(float(close), 3)
-            elif line.startswith('Target'):
-                targets_float = []
-                for target in line.split()[1:]:
-                    if target[-1] == ';':
-                        targets_float.append(round(float(target[:-4]), 3))
-                    else:
-                        targets_float.append(round(float(target[:-3]), 3))
+        arr_with_attributes.append(extract_attributes(block))
 
-        arr.append((bank, entry, close, targets_float))
-
-    return arr
+    return arr_with_attributes
 
 
-def prepare_txt(arr):
+def prepare_txt(arr_with_attributes):
     res = """"""
-    for elem in arr:
+    for elem in arr_with_attributes:
         cls = StrategyDeal(elem[0], elem[1], elem[2], elem[3])
         res += cls.__str__()
     return res
